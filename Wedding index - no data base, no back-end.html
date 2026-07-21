@@ -1,0 +1,2048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wedding index - no data base, no back-end</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --sage: #8FAE8B;
+            --sage-hover: #7E9D7A;
+            --sage-dark: #5A7757;
+            --sage-light: #EBF1EA;
+            --rose: #D4A5A5;
+            --rose-light: #F7EBEB;
+            --cream: #F5F0E8;
+            --cream-light: #FAF9F6;
+            --charcoal: #2C362B;
+            --gold: #C9A96E;
+            --white: #FFFFFF;
+            --border-light: rgba(143, 174, 139, 0.15);
+            --shadow-sm: 0 2px 10px rgba(44, 54, 43, 0.05);
+            --shadow-md: 0 8px 30px rgba(44, 54, 43, 0.08);
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+            color: var(--charcoal);
+        }
+
+        body {
+            background: linear-gradient(135deg, #F4F6F4 0%, #EAECE6 100%);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* ── Sidebar Layout ── */
+        .sidebar {
+            width: 320px;
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-light);
+            padding: 40px 24px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 100;
+            overflow-y: auto;
+        }
+
+        .main-content {
+            margin-left: 320px;
+            flex-grow: 1;
+            padding: 40px;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Logo/Header */
+        .logo-area {
+            text-align: center;
+            margin-bottom: 40px;
+            flex-shrink: 0;
+        }
+
+        .logo-area h1 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 1.8rem;
+            color: var(--sage-dark);
+            margin-bottom: 5px;
+        }
+
+        .logo-area p {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #8C998B;
+        }
+
+        /* Countdown Widget */
+        .countdown-widget {
+            background: var(--sage-light);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            text-align: center;
+            margin-bottom: 30px;
+            border: 1px solid rgba(143, 174, 139, 0.2);
+            flex-shrink: 0;
+        }
+
+        .countdown-names {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .countdown-days {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--sage-dark);
+        }
+
+        .countdown-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #6C7A6B;
+        }
+
+        /* Nav menu */
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            list-style: none;
+            margin-bottom: auto;
+            flex-shrink: 1;
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+            background: transparent;
+            border: none;
+            width: 100%;
+            text-align: left;
+        }
+
+        .nav-item:hover {
+            background: rgba(143, 174, 139, 0.1);
+            color: var(--sage-dark);
+        }
+
+        .nav-item.active {
+            background: var(--sage);
+            color: var(--white);
+            box-shadow: 0 4px 15px rgba(143, 174, 139, 0.3);
+        }
+
+        .nav-item.active svg path {
+            fill: var(--white);
+        }
+
+        .nav-item svg {
+            width: 20px;
+            height: 20px;
+            transition: all 0.2s;
+        }
+
+        /* Backup Utilities */
+        .utility-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 30px;
+            flex-shrink: 0;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: var(--sage);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: var(--sage-hover);
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            border: 1px solid var(--sage);
+            color: var(--sage-dark);
+        }
+
+        .btn-secondary:hover {
+            background: var(--sage-light);
+        }
+
+        .btn-danger {
+            background: var(--rose-light);
+            color: #C0392B;
+            border: 1px solid rgba(192, 57, 43, 0.2);
+        }
+
+        .btn-danger:hover {
+            background: #FADBD8;
+        }
+
+        /* ── Main Layout Panels ── */
+        .panel {
+            display: none;
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .panel-header {
+            margin-bottom: 30px;
+        }
+
+        .panel-header h2 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 2.2rem;
+            color: var(--sage-dark);
+            margin-bottom: 6px;
+        }
+
+        .panel-header p {
+            color: #6C7A6B;
+            font-size: 1rem;
+        }
+
+        /* Glassmorphic Cards */
+        .card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 30px;
+        }
+
+        /* Grid layouts */
+        .grid-2x2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        /* Stat cards */
+        .stat-card {
+            background: var(--white);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            border: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-info h4 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #8C998B;
+            margin-bottom: 5px;
+        }
+
+        .stat-info p {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--charcoal);
+        }
+
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--sage-light);
+        }
+
+        /* Tables style */
+        .table-responsive {
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background: var(--sage-light);
+            padding: 14px 16px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 0.95rem;
+        }
+
+        tr:hover td {
+            background: rgba(143, 174, 139, 0.03);
+        }
+
+        /* Inputs & Form Controls */
+        input[type="text"], input[type="number"], input[type="date"], select, textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid rgba(143, 174, 139, 0.3);
+            border-radius: var(--radius-sm);
+            background: var(--white);
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus, input[type="date"]:focus, select:focus, textarea:focus {
+            border-color: var(--sage);
+            box-shadow: 0 0 0 3px rgba(143, 174, 139, 0.15);
+        }
+
+        .input-inline {
+            background: transparent !important;
+            border: 1px dashed transparent !important;
+            padding: 4px 8px !important;
+            border-radius: 4px !important;
+            width: 100% !important;
+            min-width: 80px !important;
+            text-align: inherit;
+        }
+
+        .input-inline[type="date"] {
+            min-width: 150px !important;
+            cursor: pointer;
+            background: var(--white) !important;
+            border: 1px solid rgba(143, 174, 139, 0.3) !important;
+            padding: 6px 8px !important;
+        }
+
+        .input-inline:hover {
+            border-color: rgba(143, 174, 139, 0.3) !important;
+            background: var(--white) !important;
+        }
+
+        .input-inline:focus {
+            border-color: var(--sage) !important;
+            background: var(--white) !important;
+            border-style: solid !important;
+        }
+
+        /* Tables style */
+        .table-responsive {
+            overflow-x: auto;
+            width: 100%;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table-responsive table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .badge-success { background: #E8F8F5; color: #117A65; }
+        .badge-warning { background: #FEF9E7; color: #B7950B; }
+        .badge-danger { background: #FDEDEC; color: #C0392B; }
+        .badge-info { background: #EAF2F8; color: #2471A3; }
+
+        /* Setup Grid */
+        .setup-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            color: var(--sage-dark);
+        }
+
+        /* Slider Controls */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        input[type="range"] {
+            flex-grow: 1;
+            height: 6px;
+            background: var(--cream);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--sage);
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        /* Color Picker */
+        .color-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .color-block {
+            border-radius: var(--radius-md);
+            padding: 12px;
+            text-align: center;
+            border: 1px solid var(--border-light);
+            background: var(--white);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .color-preview {
+            width: 100%;
+            height: 50px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 8px;
+            border: 1px solid rgba(0,0,0,0.05);
+            cursor: pointer;
+        }
+
+        .color-block input[type="color"] {
+            display: none;
+        }
+
+        /* Expandable Panels (Prompts) */
+        .prompt-card {
+            background: var(--cream-light);
+            border-left: 4px solid var(--rose);
+            padding: 16px;
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .prompt-card:hover {
+            transform: translateX(4px);
+            background: var(--white);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .prompt-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .prompt-body {
+            display: none;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #555;
+            border-top: 1px dashed rgba(0,0,0,0.05);
+            padding-top: 10px;
+        }
+
+        /* Add Item row */
+        .add-row-btn {
+            background: transparent;
+            border: 1px dashed var(--sage);
+            color: var(--sage-dark);
+            font-weight: 500;
+            padding: 10px;
+            text-align: center;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+            margin-top: 15px;
+        }
+
+        .add-row-btn:hover {
+            background: var(--sage-light);
+            border-style: solid;
+        }
+
+        /* Interactive Action Cells */
+        .delete-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .delete-btn:hover {
+            background: var(--rose-light);
+        }
+
+        .delete-btn svg path {
+            fill: #C0392B;
+        }
+
+        /* Category Header in Budget table */
+        .cat-group-header {
+            background: var(--cream);
+            font-weight: 700;
+            color: var(--sage-dark);
+        }
+
+        .cat-group-total {
+            background: #FCFAF7;
+            font-weight: 600;
+        }
+
+        .grand-total-row {
+            background: var(--sage-dark);
+        }
+
+        .grand-total-row td, .grand-total-row input {
+            color: var(--white) !important;
+            font-weight: 700 !important;
+            font-size: 1.05rem;
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(44, 54, 43, 0.4);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            width: 90%;
+            max-width: 480px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        /* Responsive Mobile menu */
+        .mobile-header {
+            display: none;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-light);
+            position: sticky;
+            top: 0;
+            z-index: 99;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .mobile-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        @media (max-width: 991px) {
+            body {
+                flex-direction: column;
+            }
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                position: fixed;
+                height: 100vh;
+                box-shadow: var(--shadow-md);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+            .mobile-header {
+                display: flex;
+            }
+            .setup-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Mobile Header -->
+    <div class="mobile-header">
+        <h2 style="font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--sage-dark)">Calm Wedding Dashboard</h2>
+        <button class="mobile-toggle" onclick="toggleSidebar()">
+            <svg viewBox="0 0 24 24" width="24" height="24">
+                <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="var(--sage-dark)"></path>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar" id="sidebar">
+        <div class="logo-area">
+            <h1>The Calm Couple</h1>
+            <p>Wedding Budget Dashboard</p>
+            <div style="font-size: 0.72rem; background: rgba(143, 174, 139, 0.15); color: var(--sage-dark); border-radius: 12px; padding: 4px 10px; margin-top: 8px; display: inline-flex; align-items: center; gap: 5px; font-weight: 600;">🔒 100% Local • No Database • Saved on Your Machine</div>
+        </div>
+
+        <div class="countdown-widget">
+            <div class="countdown-names" id="sidebarNames">Alex & Sam</div>
+            <div class="countdown-days" id="countdownValue">280</div>
+            <div class="countdown-label">Days to wedding</div>
+        </div>
+
+        <ul class="nav-menu">
+            <li>
+                <button class="nav-item active" onclick="switchTab('dashboard')">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill="var(--charcoal)"></path></svg>
+                    Dashboard
+                </button>
+            </li>
+            <li>
+                <button class="nav-item" onclick="switchTab('budget')">
+                    <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" fill="var(--charcoal)"></path></svg>
+                    Budget Breakdown
+                </button>
+            </li>
+            <li>
+                <button class="nav-item" onclick="switchTab('vendors')">
+                    <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="var(--charcoal)"></path></svg>
+                    Vendor Tracker
+                </button>
+            </li>
+            <li>
+                <button class="nav-item" onclick="switchTab('payments')">
+                    <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z" fill="var(--charcoal)"></path></svg>
+                    Payment Schedule
+                </button>
+            </li>
+            <li>
+                <button class="nav-item" onclick="switchTab('guests')">
+                    <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" fill="var(--charcoal)"></path></svg>
+                    Guest Calculator
+                </button>
+            </li>
+            <li>
+                <button class="nav-item" onclick="switchTab('moodboard')">
+                    <svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" fill="var(--charcoal)"></path></svg>
+                    Moodboard
+                </button>
+            </li>
+            <li>
+                <button class="nav-item" onclick="switchTab('stress')">
+                    <svg viewBox="0 0 24 24"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.8 12.16 7 10.63 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z" fill="var(--charcoal)"></path></svg>
+                    Stress Check-In
+                </button>
+            </li>
+            <li>
+                <button class="nav-item" onclick="switchTab('setup')">
+                    <svg viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3-1.07-3-3s1.07-3 3-3 3 1.07 3 3-1.07 3-3 3z" fill="var(--charcoal)"></path></svg>
+                    Setup
+                </button>
+            </li>
+        </ul>
+
+        <div class="utility-buttons">
+            <button class="btn btn-secondary" onclick="exportData()">
+                <svg viewBox="0 0 24 24" width="16" height="16"><path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z" fill="var(--sage-dark)"></path></svg>
+                Export JSON Data
+            </button>
+            <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">
+                <svg viewBox="0 0 24 24" width="16" height="16"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z" fill="var(--sage-dark)"></path></svg>
+                Import JSON Data
+            </button>
+            <input type="file" id="importFile" style="display:none" onchange="importData(event)">
+            <button class="btn btn-danger" onclick="confirmReset()">Reset Planner</button>
+        </div>
+    </div>
+
+    <!-- Main Content Panels -->
+    <div class="main-content">
+
+        <!-- ── TAB 1: DASHBOARD ── -->
+        <div class="panel active" id="panel-dashboard">
+            <div class="panel-header">
+                <h2 id="dashTitle">Alex & Sam's Wedding</h2>
+                <p>Welcome to your stress-free planning hub. Let's watch the budget stay beautifully balanced.</p>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="grid-2x2">
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h4>Total Budget</h4>
+                        <p id="cardTotalBudget">$0.00</p>
+                    </div>
+                    <div class="stat-icon">🏦</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h4>Total Spent</h4>
+                        <p id="cardTotalSpent">$0.00</p>
+                    </div>
+                    <div class="stat-icon">💰</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h4>Remaining</h4>
+                        <p id="cardRemaining">$0.00</p>
+                    </div>
+                    <div class="stat-icon">🌱</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h4>Owed</h4>
+                        <p id="cardOwed">$0.00</p>
+                    </div>
+                    <div class="stat-icon">⏳</div>
+                </div>
+            </div>
+
+            <!-- Charts & Category breakdown -->
+            <div class="grid-2x2" style="grid-template-columns: 2fr 1fr;">
+                <div class="card">
+                    <h3 style="margin-bottom: 20px; font-family: 'Playfair Display', serif;">Budget Allocation vs Actual Spend</h3>
+                    <div style="height: 350px;">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+                <div class="card" style="display: flex; flex-direction: column; justify-content: center;">
+                    <h3 style="margin-bottom: 20px; font-family: 'Playfair Display', serif; text-align: center;">Spend Share</h3>
+                    <div style="height: 250px;">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats and Summary -->
+            <div class="grid-2x2">
+                <div class="card">
+                    <h3 style="margin-bottom: 15px; font-family: 'Playfair Display', serif;">Category Summary</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Estimated</th>
+                                    <th>Actual</th>
+                                    <th>Paid</th>
+                                    <th>Share</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashCategoryTable">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3 style="margin-bottom: 15px; font-family: 'Playfair Display', serif;">Quick Planning Metrics</h3>
+                    <div class="table-responsive">
+                        <table style="border: none;">
+                            <tbody id="dashMetricsTable">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── TAB 2: BUDGET BREAKDOWN ── -->
+        <div class="panel" id="panel-budget">
+            <div class="panel-header">
+                <h2>Budget Breakdown</h2>
+                <p>Track every estimate, actual invoice, and paid deposit. Click on values to update them.</p>
+            </div>
+
+            <div class="card">
+                <div class="table-responsive">
+                    <table style="min-width: 900px;">
+                        <thead>
+                            <tr>
+                                <th style="width: 180px;">Category</th>
+                                <th style="width: 220px;">Item</th>
+                                <th style="width: 110px;">Estimated</th>
+                                <th style="width: 110px;">Actual</th>
+                                <th style="width: 110px;">Paid</th>
+                                <th style="width: 110px;">Remaining</th>
+                                <th style="width: 60px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="budgetBreakdownTable">
+                            <!-- Preloaded items and user additions -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── TAB 3: VENDOR TRACKER ── -->
+        <div class="panel" id="panel-vendors">
+            <div class="panel-header">
+                <h2>Vendor Management Hub</h2>
+                <p>Keep all contract amounts, deposit schedules, and deadlines in one central registry.</p>
+            </div>
+
+            <div class="card">
+                <div class="table-responsive">
+                    <table style="min-width: 1140px;">
+                        <thead>
+                            <tr>
+                                <th style="width: 180px;">Vendor Name</th>
+                                <th style="width: 150px;">Category</th>
+                                <th style="width: 200px;">Contact Info</th>
+                                <th style="width: 110px;">Contract Price</th>
+                                <th style="width: 160px;">Deposit Due</th>
+                                <th style="width: 160px;">Final Due</th>
+                                <th style="width: 130px;">Status</th>
+                                <th style="width: 50px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="vendorsTableBody">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+                <button class="add-row-btn" onclick="addNewVendor()">+ Add Vendor Registry Entry</button>
+            </div>
+        </div>
+
+        <!-- ── TAB 4: PAYMENT SCHEDULE ── -->
+        <div class="panel" id="panel-payments">
+            <div class="panel-header">
+                <h2>Payment Schedule Calendar</h2>
+                <p>Manage your upcoming invoices, retainers, and balance timelines to protect cash flow.</p>
+            </div>
+
+            <div class="grid-2x2">
+                <div class="card">
+                    <h3 style="margin-bottom: 20px; font-family: 'Playfair Display', serif;">Payments Timeline</h3>
+                    <div class="table-responsive">
+                        <table style="min-width: 880px;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 160px;">Due Date</th>
+                                    <th style="width: 180px;">Vendor</th>
+                                    <th style="width: 140px;">Payment Type</th>
+                                    <th style="width: 110px;">Amount</th>
+                                    <th style="width: 100px;">Paid?</th>
+                                    <th style="width: 140px;">Method</th>
+                                    <th style="width: 50px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="paymentsTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <button class="add-row-btn" onclick="addNewPayment()">+ Schedule Payment Entry</button>
+                </div>
+                <div class="card">
+                    <h3 style="margin-bottom: 20px; font-family: 'Playfair Display', serif;">Payments Cashflow Summary</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Total Scheduled</strong></td>
+                                    <td id="pmtTotalSched" style="text-align: right; font-weight: bold;">$0.00</td>
+                                </tr>
+                                <tr>
+                                    <td><strong style="color: var(--sage-dark)">Total Paid</strong></td>
+                                    <td id="pmtTotalPaid" style="text-align: right; color: var(--sage-dark); font-weight: bold;">$0.00</td>
+                                </tr>
+                                <tr>
+                                    <td><strong style="color: #C0392B">Remaining Balance</strong></td>
+                                    <td id="pmtTotalRem" style="text-align: right; color: #C0392B; font-weight: bold;">$0.00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── TAB 5: GUEST CALCULATOR ── -->
+        <div class="panel" id="panel-guests">
+            <div class="panel-header">
+                <h2>Guest Impact Calculator</h2>
+                <p>Dynamically scale guest counts and RSVPs to instantly see cost impacts on catering and rentals.</p>
+            </div>
+
+            <div class="grid-2x2">
+                <div class="card">
+                    <h3 style="margin-bottom: 20px; font-family: 'Playfair Display', serif;">Interactive Sliders</h3>
+                    <div class="form-group">
+                        <label>Guest Count Invited: <span id="lblGuestInvited" style="font-weight: 700;">120</span></label>
+                        <div class="slider-container">
+                            <input type="range" id="sliderGuestCount" min="10" max="500" value="120" oninput="updateGuestCalc()">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Estimated RSVP Yes Rate: <span id="lblRsvpRate" style="font-weight: 700;">85%</span></label>
+                        <div class="slider-container">
+                            <input type="range" id="sliderRsvpRate" min="50" max="100" value="85" oninput="updateGuestCalc()">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Plus-Ones Estimate: <span id="lblPlusOnes" style="font-weight: 700;">10</span></label>
+                        <div class="slider-container">
+                            <input type="range" id="sliderPlusOnes" min="0" max="100" value="10" oninput="updateGuestCalc()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 style="margin-bottom: 20px; font-family: 'Playfair Display', serif;">Per-Person Allocation</h3>
+                    <div class="form-group">
+                        <label>Catering Per Head ($)</label>
+                        <input type="number" id="inpCateringHead" value="150" oninput="updateGuestCalc()">
+                    </div>
+                    <div class="form-group">
+                        <label>Drinks Per Head ($)</label>
+                        <input type="number" id="inpDrinksHead" value="45" oninput="updateGuestCalc()">
+                    </div>
+                    <div class="form-group">
+                        <label>Favors Per Guest ($)</label>
+                        <input type="number" id="inpFavorsHead" value="8" oninput="updateGuestCalc()">
+                    </div>
+                    <div class="form-group">
+                        <label>Place Setting Rentals ($)</label>
+                        <input type="number" id="inpRentalsHead" value="12" oninput="updateGuestCalc()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-2x2">
+                <div class="card">
+                    <h3 style="margin-bottom: 20px; font-family: 'Playfair Display', serif;">Guest Cost Impact</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td>Catering Cost Total</td>
+                                    <td id="calcCateringTotal" style="text-align: right;">$0.00</td>
+                                </tr>
+                                <tr>
+                                    <td>Beverages Cost Total</td>
+                                    <td id="calcDrinksTotal" style="text-align: right;">$0.00</td>
+                                </tr>
+                                <tr>
+                                    <td>Favors Cost Total</td>
+                                    <td id="calcFavorsTotal" style="text-align: right;">$0.00</td>
+                                </tr>
+                                <tr>
+                                    <td>Rentals Cost Total</td>
+                                    <td id="calcRentalsTotal" style="text-align: right;">$0.00</td>
+                                </tr>
+                                <tr style="font-weight: bold; background: var(--sage-light)">
+                                    <td>GRAND GUEST COSTS</td>
+                                    <td id="calcGrandGuest" style="text-align: right; color: var(--sage-dark)">$0.00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3 style="margin-bottom: 20px; font-family: 'Playfair Display', serif;">What-If Scenario Summary</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td>Estimated Attending</td>
+                                    <td id="attendingCalcVal" style="text-align: right; font-weight: bold;">112</td>
+                                </tr>
+                                <tr>
+                                    <td>If you ADD 10 guests:</td>
+                                    <td id="whatifAdd10" style="text-align: right; color: #C0392B;">+$2,150.00</td>
+                                </tr>
+                                <tr>
+                                    <td>If you ADD 25 guests:</td>
+                                    <td id="whatifAdd25" style="text-align: right; color: #C0392B;">+$5,375.00</td>
+                                </tr>
+                                <tr>
+                                    <td>If you REMOVE 10 guests:</td>
+                                    <td id="whatifRem10" style="text-align: right; color: var(--sage-dark);">-$2,150.00</td>
+                                </tr>
+                                <tr>
+                                    <td>If you REMOVE 25 guests:</td>
+                                    <td id="whatifRem25" style="text-align: right; color: var(--sage-dark);">-$5,375.00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── TAB 6: MOODBOARD ── -->
+        <div class="panel" id="panel-moodboard">
+            <div class="panel-header">
+                <h2>Wedding Design & Moodboard</h2>
+                <p>Align color schemes, palette HEX numbers, and theme mood keywords in one collaborative area.</p>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-bottom: 20px; font-family: 'Playfair Display', serif;">Color Palette Swatches</h3>
+                <div class="color-picker-grid" id="colorPickerGrid">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-bottom: 20px; font-family: 'Playfair Display', serif;">Wedding Theme Specifics</h3>
+                <div class="setup-grid">
+                    <div class="form-group">
+                        <label>Overall Theme / Style</label>
+                        <input type="text" id="moodTheme" value="Rustic Elegance" onchange="saveMoodboardFields()">
+                    </div>
+                    <div class="form-group">
+                        <label>Venue Vibe</label>
+                        <input type="text" id="moodVenueVibe" value="Spring garden ceremony with reception under fairy lights" onchange="saveMoodboardFields()">
+                    </div>
+                    <div class="form-group">
+                        <label>Season & Wedding Timing</label>
+                        <input type="text" id="moodSeason" value="Late Summer Evening" onchange="saveMoodboardFields()">
+                    </div>
+                    <div class="form-group">
+                        <label>Core Aesthetic Words</label>
+                        <input type="text" id="moodKeywords" value="Romantic, Joyful, Warm, Cozy, Intimate" onchange="saveMoodboardFields()">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── TAB 7: STRESS CHECK-IN ── -->
+        <div class="panel" id="panel-stress">
+            <div class="panel-header">
+                <h2>Weekly Stress Check-In</h2>
+                <p>Wedding planning is emotional. Pause, track your stress, record a win, and communicate with your partner.</p>
+            </div>
+
+            <div class="grid-2x2">
+                <div class="card">
+                    <h3 style="margin-bottom: 20px; font-family: 'Playfair Display', serif;">Log This Week's Emotion</h3>
+                    <div class="form-group">
+                        <label>This Week's Stress Level: <span id="stressValLabel" style="font-weight: 700; color: var(--sage-dark)">3</span>/5</label>
+                        <div class="slider-container">
+                            <input type="range" id="stressLevelRange" min="1" max="5" value="3" oninput="document.getElementById('stressValLabel').innerText = this.value">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>What's Overwhelming You?</label>
+                        <select id="stressTrigger">
+                            <option value="Budget/Finance">Budget & Finances</option>
+                            <option value="Family Dynamics">Family Expectations & Dynamics</option>
+                            <option value="Decisions">Decision Fatigue</option>
+                            <option value="Timeline">Timeline / Running Out of Time</option>
+                            <option value="Vendor Coordination">Vendor Coordination</option>
+                            <option value="None">Nothing, feeling great!</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>This Week's Small Win</label>
+                        <input type="text" id="stressWin" placeholder="e.g., We booked our photographer!">
+                    </div>
+                    <div class="form-group">
+                        <label>Something I'm Grateful For</label>
+                        <input type="text" id="stressGratitude" placeholder="e.g., How supportive my partner has been">
+                    </div>
+                    <button class="btn btn-primary" onclick="addStressLog()">Add Log Entry</button>
+                </div>
+
+                <div class="card">
+                    <h3 style="margin-bottom: 20px; font-family: 'Playfair Display', serif;">Couple Conversation Starters</h3>
+                    <div class="prompt-card" onclick="togglePrompt(this)">
+                        <div class="prompt-title">🗣️ Budget Priority Check-In <span>+</span></div>
+                        <div class="prompt-body">"What are our top 3 non-negotiable wedding elements? Let's make sure we fund these fully before reviewing anything else."</div>
+                    </div>
+                    <div class="prompt-card" onclick="togglePrompt(this)">
+                        <div class="prompt-title">🗣️ Decision Fatigue Check-in <span>+</span></div>
+                        <div class="prompt-body">"What decision is draining us most right now? Let's delegate it, pause it, or make it simple."</div>
+                    </div>
+                    <div class="prompt-card" onclick="togglePrompt(this)">
+                        <div class="prompt-title">🗣️ Fun Planning Discussion <span>+</span></div>
+                        <div class="prompt-body">"What is the single thing we are most looking forward to on our wedding day? Let's check in on the excitement!"</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-bottom: 20px; font-family: 'Playfair Display', serif;">Stress & Reflection Logs</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 10%">Log Date</th>
+                                <th style="width: 10%">Stress Level</th>
+                                <th style="width: 20%">Core Overwhelm Area</th>
+                                <th style="width: 30%">Small Win</th>
+                                <th style="width: 30%">Gratitude</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stressLogsTableBody">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── TAB 8: SETUP ── -->
+        <div class="panel" id="panel-setup">
+            <div class="panel-header">
+                <h2>Onboarding Setup & Configuration</h2>
+                <p>Personalize your dashboard configuration. Values here feed dynamically into the dashboard.</p>
+            </div>
+
+            <div class="card">
+                <div class="setup-grid">
+                    <div class="form-group">
+                        <label>Partner 1 Name</label>
+                        <input type="text" id="setupP1" value="Alex" oninput="saveSetupData()">
+                    </div>
+                    <div class="form-group">
+                        <label>Partner 2 Name</label>
+                        <input type="text" id="setupP2" value="Sam" oninput="saveSetupData()">
+                    </div>
+                    <div class="form-group">
+                        <label>Wedding Date</label>
+                        <input type="date" id="setupDate" value="2026-08-15" oninput="saveSetupData()" onchange="saveSetupData()">
+                    </div>
+                    <div class="form-group">
+                        <label>Total Budget Allocation ($)</label>
+                        <input type="number" id="setupBudget" value="35000" oninput="saveSetupData()">
+                    </div>
+                    <div class="form-group">
+                        <label>Estimated Target Guests</label>
+                        <input type="number" id="setupGuests" value="120" oninput="saveSetupData()">
+                    </div>
+                    <div class="form-group">
+                        <label>Currency Display Code</label>
+                        <select id="setupCurrency" onchange="saveSetupData()">
+                            <option value="$">USD ($)</option>
+                            <option value="€">EUR (€)</option>
+                            <option value="£">GBP (£)</option>
+                            <option value="A$">AUD (A$)</option>
+                            <option value="C$">CAD (C$)</option>
+                            <option value="Rs.">INR (Rs.)</option>
+                            <option value="AED">AED</option>
+                            <option value="S$">SGD (S$)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modals -->
+    <div class="modal-overlay" id="resetModal">
+        <div class="modal">
+            <h3 style="font-family: 'Playfair Display', serif; font-size: 1.5rem; margin-bottom: 15px; color: #C0392B;">Reset Wedding Planner?</h3>
+            <p style="font-size: 0.95rem; margin-bottom: 20px; line-height: 1.5;">This will completely clear your current configurations and restore factory template values. Make sure you export a backup first if you wish to save your inputs!</p>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeResetModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="triggerResetData()" style="background: #C0392B; color: white;">Confirm Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script logic -->
+    <script>
+        // ── FACTORY DEFAULT STATE ──
+        const DEFAULT_BUDGET_ITEMS = {
+            "Venue & Rentals": [
+                { item: "Ceremony Venue", est: 2500, act: 0, paid: 0, note: "" },
+                { item: "Reception Venue", est: 6000, act: 0, paid: 0, note: "" },
+                { item: "Tables & Chairs", est: 1200, act: 0, paid: 0, note: "" },
+                { item: "Dance Floor", est: 500, act: 0, paid: 0, note: "" }
+            ],
+            "Catering & Bar": [
+                { item: "Catering (Per Head)", est: 10000, act: 0, paid: 0, note: "" },
+                { item: "Wedding Cake", est: 600, act: 0, paid: 0, note: "" },
+                { item: "Bar Package", est: 3000, act: 0, paid: 0, note: "" }
+            ],
+            "Photography & Videography": [
+                { item: "Photographer", est: 3500, act: 0, paid: 0, note: "" },
+                { item: "Videographer", est: 3000, act: 0, paid: 0, note: "" }
+            ],
+            "Flowers & Decor": [
+                { item: "Ceremony Flowers", est: 1000, act: 0, paid: 0, note: "" },
+                { item: "Reception Centerpieces", est: 2000, act: 0, paid: 0, note: "" }
+            ],
+            "Music & Entertainment": [
+                { item: "DJ / Band", est: 2500, act: 0, paid: 0, note: "" }
+            ]
+        };
+
+        const CATEGORIES = Object.keys(DEFAULT_BUDGET_ITEMS);
+
+        let appState = {
+            setup: {
+                p1: "Alex",
+                p2: "Sam",
+                date: "2026-08-15",
+                budget: 35000,
+                guests: 120,
+                currency: "$"
+            },
+            budget: [],
+            vendors: [
+                { id: 1, name: "Sunset Gardens", category: "Venue & Rentals", contact: "Janice", email: "info@sunsetgardens.com", price: 8500, depositDue: "2026-02-01", finalDue: "2026-07-01", status: "Deposit Paid" }
+            ],
+            payments: [
+                { id: 1, dueDate: "2026-02-01", vendor: "Sunset Gardens", type: "Deposit", amount: 2000, paid: "Yes", method: "Credit Card" },
+                { id: 2, dueDate: "2026-07-01", vendor: "Sunset Gardens", type: "Final Payment", amount: 6500, paid: "No", method: "Bank Transfer" }
+            ],
+            guests: {
+                invited: 120,
+                rsvpRate: 85,
+                plusOnes: 10,
+                catering: 150,
+                drinks: 45,
+                favors: 8,
+                rentals: 12
+            },
+            moodboard: {
+                colors: ["#8FAE8B", "#D4A5A5", "#C9A96E", "#F5F0E8", "#FFFFFF", "#3C3C3C"],
+                theme: "Rustic Elegance",
+                venueVibe: "Spring garden ceremony with reception under fairy lights",
+                season: "Late Summer Evening",
+                keywords: "Romantic, Joyful, Warm, Cozy, Intimate"
+            },
+            stressLogs: [
+                { date: "2026-07-10", stress: 3, overwhelm: "Budget/Finance", win: "Allocated catering budget", gratitude: "My partner's support" }
+            ]
+        };
+
+        // Initialize flat budget array from nested defaults
+        function loadDefaultBudget() {
+            appState.budget = [];
+            for (let cat of CATEGORIES) {
+                for (let item of DEFAULT_BUDGET_ITEMS[cat]) {
+                    appState.budget.push({
+                        category: cat,
+                        item: item.item,
+                        est: item.est,
+                        act: item.act,
+                        paid: item.paid,
+                        note: item.note
+                    });
+                }
+            }
+        }
+
+        // ── STATE SYNC & LOAD ──
+        function initApp() {
+            const localData = localStorage.getItem("calm_wedding_planner_data");
+            if (localData) {
+                try {
+                    appState = JSON.parse(localData);
+                } catch(e) {
+                    console.error("Failed to parse local storage, loading default", e);
+                    loadDefaultBudget();
+                }
+            } else {
+                loadDefaultBudget();
+            }
+            populateSetupForm();
+            populateBudgetTable();
+            populateVendorTable();
+            populatePaymentTable();
+            populateGuestSliders();
+            populateMoodboard();
+            populateStressTab();
+            updateDashboard();
+            updateCountdown();
+        }
+
+        function saveState() {
+            localStorage.setItem("calm_wedding_planner_data", JSON.stringify(appState));
+            updateCountdown();
+        }
+
+        // ── DASHBOARD CALCULATIONS & CHARTS ──
+        let barChartInstance = null;
+        let pieChartInstance = null;
+
+        function updateDashboard() {
+            document.getElementById("dashTitle").innerText = `${appState.setup.p1} & ${appState.setup.p2}'s Wedding`;
+            document.getElementById("sidebarNames").innerText = `${appState.setup.p1} & ${appState.setup.p2}`;
+
+            const curr = appState.setup.currency;
+            let totalEst = 0;
+            let totalSpent = 0;
+            let totalPaid = 0;
+
+            const categoryTotals = {};
+            CATEGORIES.forEach(c => categoryTotals[c] = { est: 0, act: 0, paid: 0 });
+
+            appState.budget.forEach(item => {
+                const est = parseFloat(item.est) || 0;
+                const act = parseFloat(item.act) || 0;
+                const paid = parseFloat(item.paid) || 0;
+
+                totalEst += est;
+                totalSpent += act;
+                totalPaid += paid;
+
+                if (categoryTotals[item.category]) {
+                    categoryTotals[item.category].est += est;
+                    categoryTotals[item.category].act += act;
+                    categoryTotals[item.category].paid += paid;
+                }
+            });
+
+            const targetBudget = parseFloat(appState.setup.budget) || 0;
+            const remaining = targetBudget - totalSpent;
+            const owed = totalSpent - totalPaid;
+
+            document.getElementById("cardTotalBudget").innerText = formatCurr(targetBudget);
+            document.getElementById("cardTotalSpent").innerText = formatCurr(totalSpent);
+            document.getElementById("cardRemaining").innerText = formatCurr(remaining);
+            document.getElementById("cardOwed").innerText = formatCurr(owed);
+
+            // Populate dashboard category table
+            const tbody = document.getElementById("dashCategoryTable");
+            tbody.innerHTML = "";
+            CATEGORIES.forEach(c => {
+                const tr = document.createElement("tr");
+                const share = totalSpent > 0 ? ((categoryTotals[c].act / totalSpent) * 100).toFixed(1) + "%" : "0%";
+                tr.innerHTML = `
+                    <td><strong>${c}</strong></td>
+                    <td>${formatCurr(categoryTotals[c].est)}</td>
+                    <td style="font-weight: 500">${formatCurr(categoryTotals[c].act)}</td>
+                    <td>${formatCurr(categoryTotals[c].paid)}</td>
+                    <td class="badge ${totalSpent > 0 && categoryTotals[c].act > categoryTotals[c].est ? 'badge-danger' : 'badge-success'}">${share}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Metrics table
+            const metricsBody = document.getElementById("dashMetricsTable");
+            const overBudgetItemsCount = appState.budget.filter(item => (parseFloat(item.act) || 0) > (parseFloat(item.est) || 0)).length;
+            metricsBody.innerHTML = `
+                <tr>
+                    <td><strong>Cost Per Guest:</strong></td>
+                    <td style="text-align: right; font-weight: 600;">${formatCurr(totalSpent / (parseFloat(appState.setup.guests) || 1))}</td>
+                </tr>
+                <tr>
+                    <td><strong>Estimated Guest Count:</strong></td>
+                    <td style="text-align: right;">${appState.setup.guests}</td>
+                </tr>
+                <tr>
+                    <td><strong>Total Items Tracked:</strong></td>
+                    <td style="text-align: right;">${appState.budget.length}</td>
+                </tr>
+                <tr>
+                    <td><strong>Items Over Budget:</strong></td>
+                    <td style="text-align: right; color: #C0392B; font-weight: 600;">${overBudgetItemsCount}</td>
+                </tr>
+            `;
+
+            renderCharts(categoryTotals);
+        }
+
+        function renderCharts(totals) {
+            const ctxBar = document.getElementById("barChart").getContext("2d");
+            const ctxPie = document.getElementById("pieChart").getContext("2d");
+
+            const labels = CATEGORIES;
+            const estData = labels.map(c => totals[c].est);
+            const actData = labels.map(c => totals[c].act);
+
+            if (barChartInstance) barChartInstance.destroy();
+            barChartInstance = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Estimated', data: estData, backgroundColor: '#D4A5A5' },
+                        { label: 'Actual', data: actData, backgroundColor: '#8FAE8B' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+            if (pieChartInstance) pieChartInstance.destroy();
+            pieChartInstance = new Chart(ctxPie, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: actData.map(val => val || 1), // Avoid blank donut
+                        backgroundColor: ['#8FAE8B', '#D4A5A5', '#C9A96E', '#F5F0E8', '#3C3C3C']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        // ── BUDGET TAB LOGIC ──
+        function populateBudgetTable() {
+            const tbody = document.getElementById("budgetBreakdownTable");
+            tbody.innerHTML = "";
+
+            const catItems = {};
+            CATEGORIES.forEach(c => catItems[c] = []);
+            appState.budget.forEach(item => {
+                if (catItems[item.category]) catItems[item.category].push(item);
+            });
+
+            CATEGORIES.forEach(cat => {
+                // Category Group Header
+                const trHeader = document.createElement("tr");
+                trHeader.className = "cat-group-header";
+                trHeader.innerHTML = `<td colspan="7">${cat}</td>`;
+                tbody.appendChild(trHeader);
+
+                // Group Items
+                catItems[cat].forEach((item, idx) => {
+                    const tr = document.createElement("tr");
+                    const index = appState.budget.indexOf(item);
+                    const diff = item.est - item.act;
+                    const rem = item.act - item.paid;
+                    const statusClass = diff < 0 ? 'badge-danger' : 'badge-success';
+
+                    tr.innerHTML = `
+                        <td></td>
+                        <td><input type="text" class="input-inline" value="${item.item}" onchange="updateBudgetItem(${index}, 'item', this.value)"></td>
+                        <td><input type="number" class="input-inline" value="${item.est}" onchange="updateBudgetItem(${index}, 'est', this.value)"></td>
+                        <td><input type="number" class="input-inline" value="${item.act}" onchange="updateBudgetItem(${index}, 'act', this.value)"></td>
+                        <td><input type="number" class="input-inline" value="${item.paid}" onchange="updateBudgetItem(${index}, 'paid', this.value)"></td>
+                        <td style="font-weight: 500">${formatCurr(rem)}</td>
+                        <td>
+                            <button class="delete-btn" onclick="deleteBudgetItem(${index})">
+                                <svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                // Add Item button under category
+                const trAdd = document.createElement("tr");
+                trAdd.innerHTML = `
+                    <td colspan="7">
+                        <button class="add-row-btn" onclick="addNewBudgetItem('${cat}')" style="margin: 5px 0;">+ Add item to ${cat}</button>
+                    </td>
+                `;
+                tbody.appendChild(trAdd);
+            });
+
+            // Grand Total Row
+            let totalEst = appState.budget.reduce((a, b) => a + (parseFloat(b.est) || 0), 0);
+            let totalAct = appState.budget.reduce((a, b) => a + (parseFloat(b.act) || 0), 0);
+            let totalPaid = appState.budget.reduce((a, b) => a + (parseFloat(b.paid) || 0), 0);
+            const trGrand = document.createElement("tr");
+            trGrand.className = "grand-total-row";
+            trGrand.innerHTML = `
+                <td><strong>GRAND TOTAL</strong></td>
+                <td></td>
+                <td>${formatCurr(totalEst)}</td>
+                <td>${formatCurr(totalAct)}</td>
+                <td>${formatCurr(totalPaid)}</td>
+                <td>${formatCurr(totalAct - totalPaid)}</td>
+                <td></td>
+            `;
+            tbody.appendChild(trGrand);
+        }
+
+        function updateBudgetItem(index, field, value) {
+            appState.budget[index][field] = field === 'item' || field === 'note' ? value : parseFloat(value) || 0;
+            saveState();
+            populateBudgetTable();
+            updateDashboard();
+        }
+
+        function addNewBudgetItem(category) {
+            appState.budget.push({
+                category: category,
+                item: "New Item",
+                est: 0,
+                act: 0,
+                paid: 0,
+                note: ""
+            });
+            saveState();
+            populateBudgetTable();
+            updateDashboard();
+        }
+
+        function deleteBudgetItem(index) {
+            appState.budget.splice(index, 1);
+            saveState();
+            populateBudgetTable();
+            updateDashboard();
+        }
+
+        // ── VENDORS TAB LOGIC ──
+        function populateVendorTable() {
+            const tbody = document.getElementById("vendorsTableBody");
+            tbody.innerHTML = "";
+            appState.vendors.forEach((v, idx) => {
+                const tr = document.createElement("tr");
+                let statusBadge = 'badge-info';
+                if (v.status === 'Fully Paid') statusBadge = 'badge-success';
+                if (v.status === 'Deposit Paid') statusBadge = 'badge-warning';
+
+                // Combine contact + email into one display field
+                const contactDisplay = [v.contact, v.email].filter(Boolean).join(' / ') || '';
+
+                tr.innerHTML = `
+                    <td><input type="text" class="input-inline" value="${v.name}" onchange="updateVendorField(${idx}, 'name', this.value)" title="${v.name}"></td>
+                    <td>
+                        <select class="input-inline" onchange="updateVendorField(${idx}, 'category', this.value)">
+                            ${CATEGORIES.map(c => `<option value="${c}" ${c === v.category ? 'selected' : ''}>${c}</option>`).join('')}
+                        </select>
+                    </td>
+                    <td><input type="text" class="input-inline" value="${contactDisplay}" onchange="parseContactField(${idx}, this.value)" title="${contactDisplay}" placeholder="Name / email or phone"></td>
+                    <td><input type="number" class="input-inline" value="${v.price}" onchange="updateVendorField(${idx}, 'price', this.value)"></td>
+                    <td><input type="date" class="input-inline" value="${v.depositDue}" onchange="updateVendorField(${idx}, 'depositDue', this.value)"></td>
+                    <td><input type="date" class="input-inline" value="${v.finalDue}" onchange="updateVendorField(${idx}, 'finalDue', this.value)"></td>
+                    <td>
+                        <select class="badge ${statusBadge}" style="border:none; font-size: 0.7rem; padding: 3px 6px;" onchange="updateVendorField(${idx}, 'status', this.value, this)">
+                            <option value="Researching" ${v.status === 'Researching' ? 'selected' : ''}>Researching</option>
+                            <option value="Booked" ${v.status === 'Booked' ? 'selected' : ''}>Booked</option>
+                            <option value="Deposit Paid" ${v.status === 'Deposit Paid' ? 'selected' : ''}>Deposit Paid</option>
+                            <option value="Fully Paid" ${v.status === 'Fully Paid' ? 'selected' : ''}>Fully Paid</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button class="delete-btn" onclick="deleteVendor(${idx})">
+                            <svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function parseContactField(idx, val) {
+            // If user enters "Name / email", split; otherwise store in contact
+            const parts = val.split('/');
+            if (parts.length >= 2) {
+                appState.vendors[idx].contact = parts[0].trim();
+                appState.vendors[idx].email = parts.slice(1).join('/').trim();
+            } else {
+                appState.vendors[idx].contact = val.trim();
+                appState.vendors[idx].email = "";
+            }
+            saveState();
+        }
+
+        function updateVendorField(idx, field, val, element) {
+            appState.vendors[idx][field] = field === 'price' ? parseFloat(val) || 0 : val;
+            saveState();
+            if (field === 'price') {
+                updateDashboard();
+            }
+            if (field === 'status' && element) {
+                element.className = `badge ${val === 'Fully Paid' ? 'badge-success' : val === 'Deposit Paid' ? 'badge-warning' : 'badge-info'}`;
+            }
+        }
+
+        function addNewVendor() {
+            appState.vendors.push({
+                id: Date.now(),
+                name: "New Vendor",
+                category: CATEGORIES[0],
+                contact: "",
+                email: "",
+                price: 0,
+                depositDue: "",
+                finalDue: "",
+                status: "Researching"
+            });
+            saveState();
+            populateVendorTable();
+        }
+
+        function deleteVendor(idx) {
+            appState.vendors.splice(idx, 1);
+            saveState();
+            populateVendorTable();
+        }
+
+        // ── PAYMENTS TAB LOGIC ──
+        function populatePaymentTable() {
+            const tbody = document.getElementById("paymentsTableBody");
+            tbody.innerHTML = "";
+            let total = 0;
+            let paid = 0;
+
+            appState.payments.forEach((p, idx) => {
+                const tr = document.createElement("tr");
+                const amt = parseFloat(p.amount) || 0;
+                total += amt;
+                if (p.paid === 'Yes') paid += amt;
+
+                tr.innerHTML = `
+                    <td><input type="date" class="input-inline" value="${p.dueDate}" onchange="updatePaymentField(${idx}, 'dueDate', this.value)"></td>
+                    <td><input type="text" class="input-inline" value="${p.vendor}" onchange="updatePaymentField(${idx}, 'vendor', this.value)"></td>
+                    <td>
+                        <select class="input-inline" onchange="updatePaymentField(${idx}, 'type', this.value)">
+                            <option value="Deposit" ${p.type === 'Deposit' ? 'selected' : ''}>Deposit</option>
+                            <option value="Final Payment" ${p.type === 'Final Payment' ? 'selected' : ''}>Final Payment</option>
+                            <option value="Installment" ${p.type === 'Installment' ? 'selected' : ''}>Installment</option>
+                        </select>
+                    </td>
+                    <td><input type="number" class="input-inline" value="${p.amount}" onchange="updatePaymentField(${idx}, 'amount', this.value)"></td>
+                    <td>
+                        <select class="badge ${p.paid === 'Yes' ? 'badge-success' : 'badge-danger'}" style="border:none;" onchange="updatePaymentField(${idx}, 'paid', this.value, this)">
+                            <option value="Yes" ${p.paid === 'Yes' ? 'selected' : ''}>Yes</option>
+                            <option value="No" ${p.paid === 'No' ? 'selected' : ''}>No</option>
+                        </select>
+                    </td>
+                    <td><input type="text" class="input-inline" value="${p.method}" onchange="updatePaymentField(${idx}, 'method', this.value)"></td>
+                    <td>
+                        <button class="delete-btn" onclick="deletePayment(${idx})">
+                            <svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById("pmtTotalSched").innerText = formatCurr(total);
+            document.getElementById("pmtTotalPaid").innerText = formatCurr(paid);
+            document.getElementById("pmtTotalRem").innerText = formatCurr(total - paid);
+        }
+
+        function updatePaymentTotalsOnly() {
+            let total = 0;
+            let paid = 0;
+            appState.payments.forEach(p => {
+                const amt = parseFloat(p.amount) || 0;
+                total += amt;
+                if (p.paid === 'Yes') paid += amt;
+            });
+            document.getElementById("pmtTotalSched").innerText = formatCurr(total);
+            document.getElementById("pmtTotalPaid").innerText = formatCurr(paid);
+            document.getElementById("pmtTotalRem").innerText = formatCurr(total - paid);
+        }
+
+        function updatePaymentField(idx, field, val, element) {
+            appState.payments[idx][field] = field === 'amount' ? parseFloat(val) || 0 : val;
+            saveState();
+            updatePaymentTotalsOnly();
+            if (field === 'paid' && element) {
+                element.className = `badge ${val === 'Yes' ? 'badge-success' : 'badge-danger'}`;
+            }
+        }
+
+        function addNewPayment() {
+            appState.payments.push({
+                id: Date.now(),
+                dueDate: "",
+                vendor: "New Vendor",
+                type: "Deposit",
+                amount: 0,
+                paid: "No",
+                method: ""
+            });
+            saveState();
+            populatePaymentTable();
+        }
+
+        function deletePayment(idx) {
+            appState.payments.splice(idx, 1);
+            saveState();
+            populatePaymentTable();
+        }
+
+        // ── GUEST TAB LOGIC ──
+        function populateGuestSliders() {
+            const g = appState.guests;
+            document.getElementById("sliderGuestCount").value = g.invited;
+            document.getElementById("sliderRsvpRate").value = g.rsvpRate;
+            document.getElementById("sliderPlusOnes").value = g.plusOnes;
+
+            document.getElementById("inpCateringHead").value = g.catering;
+            document.getElementById("inpDrinksHead").value = g.drinks;
+            document.getElementById("inpFavorsHead").value = g.favors;
+            document.getElementById("inpRentalsHead").value = g.rentals;
+
+            updateGuestCalc();
+        }
+
+        function updateGuestCalc() {
+            const invited = parseInt(document.getElementById("sliderGuestCount").value);
+            const rsvpRate = parseInt(document.getElementById("sliderRsvpRate").value);
+            const plusOnes = parseInt(document.getElementById("sliderPlusOnes").value);
+
+            document.getElementById("lblGuestInvited").innerText = invited;
+            document.getElementById("lblRsvpRate").innerText = rsvpRate + "%";
+            document.getElementById("lblPlusOnes").innerText = plusOnes;
+
+            const attending = Math.round(invited * (rsvpRate / 100)) + plusOnes;
+            document.getElementById("attendingCalcVal").innerText = attending;
+
+            const catering = parseFloat(document.getElementById("inpCateringHead").value) || 0;
+            const drinks = parseFloat(document.getElementById("inpDrinksHead").value) || 0;
+            const favors = parseFloat(document.getElementById("inpFavorsHead").value) || 0;
+            const rentals = parseFloat(document.getElementById("inpRentalsHead").value) || 0;
+
+            const totalCatering = attending * catering;
+            const totalDrinks = attending * drinks;
+            const totalFavors = attending * favors;
+            const totalRentals = attending * rentals;
+            const grandTotal = totalCatering + totalDrinks + totalFavors + totalRentals;
+
+            document.getElementById("calcCateringTotal").innerText = formatCurr(totalCatering);
+            document.getElementById("calcDrinksTotal").innerText = formatCurr(totalDrinks);
+            document.getElementById("calcFavorsTotal").innerText = formatCurr(totalFavors);
+            document.getElementById("calcRentalsTotal").innerText = formatCurr(totalRentals);
+            document.getElementById("calcGrandGuest").innerText = formatCurr(grandTotal);
+
+            // What-If
+            const perGuestCost = catering + drinks + favors + rentals;
+            document.getElementById("whatifAdd10").innerText = "+" + formatCurr(10 * perGuestCost);
+            document.getElementById("whatifAdd25").innerText = "+" + formatCurr(25 * perGuestCost);
+            document.getElementById("whatifRem10").innerText = "-" + formatCurr(10 * perGuestCost);
+            document.getElementById("whatifRem25").innerText = "-" + formatCurr(25 * perGuestCost);
+
+            // Sync back to state
+            appState.guests = {
+                invited, rsvpRate, plusOnes,
+                catering, drinks, favors, rentals
+            };
+            saveState();
+        }
+
+        // ── MOODBOARD TAB LOGIC ──
+        function populateMoodboard() {
+            document.getElementById("moodTheme").value = appState.moodboard.theme;
+            document.getElementById("moodVenueVibe").value = appState.moodboard.venueVibe;
+            document.getElementById("moodSeason").value = appState.moodboard.season;
+            document.getElementById("moodKeywords").value = appState.moodboard.keywords;
+
+            const grid = document.getElementById("colorPickerGrid");
+            grid.innerHTML = "";
+            appState.moodboard.colors.forEach((color, idx) => {
+                const div = document.createElement("div");
+                div.className = "color-block";
+                div.innerHTML = `
+                    <div class="color-preview" style="background: ${color}" onclick="triggerColorInput(${idx})"></div>
+                    <span style="font-size: 0.8rem; font-weight:600">${color}</span>
+                    <input type="color" value="${color}" onchange="updateMoodColor(${idx}, this.value)">
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        function triggerColorInput(idx) {
+            const inputs = document.querySelectorAll("#colorPickerGrid input[type='color']");
+            inputs[idx].click();
+        }
+
+        function updateMoodColor(idx, val) {
+            appState.moodboard.colors[idx] = val.toUpperCase();
+            saveState();
+            populateMoodboard();
+        }
+
+        function saveMoodboardFields() {
+            appState.moodboard.theme = document.getElementById("moodTheme").value;
+            appState.moodboard.venueVibe = document.getElementById("moodVenueVibe").value;
+            appState.moodboard.season = document.getElementById("moodSeason").value;
+            appState.moodboard.keywords = document.getElementById("moodKeywords").value;
+            saveState();
+        }
+
+        // ── STRESS TAB LOGIC ──
+        function populateStressTab() {
+            const tbody = document.getElementById("stressLogsTableBody");
+            tbody.innerHTML = "";
+            appState.stressLogs.forEach(log => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${log.date}</td>
+                    <td><strong>${log.stress}</strong>/5</td>
+                    <td>${log.overwhelm}</td>
+                    <td>${log.win}</td>
+                    <td>${log.gratitude}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function addStressLog() {
+            const stress = parseInt(document.getElementById("stressLevelRange").value);
+            const overwhelm = document.getElementById("stressTrigger").value;
+            const win = document.getElementById("stressWin").value;
+            const gratitude = document.getElementById("stressGratitude").value;
+            const date = new Date().toISOString().split('T')[0];
+
+            if (!win && !gratitude) {
+                alert("Please add a small win or gratitude reflection first!");
+                return;
+            }
+
+            appState.stressLogs.unshift({ date, stress, overwhelm, win, gratitude });
+            saveState();
+            populateStressTab();
+
+            // Clear inputs
+            document.getElementById("stressWin").value = "";
+            document.getElementById("stressGratitude").value = "";
+            document.getElementById("stressLevelRange").value = 3;
+            document.getElementById("stressValLabel").innerText = 3;
+        }
+
+        function togglePrompt(card) {
+            const body = card.querySelector(".prompt-body");
+            const span = card.querySelector(".prompt-title span");
+            if (body.style.display === "block") {
+                body.style.display = "none";
+                span.innerText = "+";
+            } else {
+                body.style.display = "block";
+                span.innerText = "-";
+            }
+        }
+
+        // ── SETUP TAB LOGIC ──
+        function populateSetupForm() {
+            const s = appState.setup;
+            document.getElementById("setupP1").value = s.p1;
+            document.getElementById("setupP2").value = s.p2;
+            document.getElementById("setupDate").value = s.date;
+            document.getElementById("setupBudget").value = s.budget;
+            document.getElementById("setupGuests").value = s.guests;
+            document.getElementById("setupCurrency").value = s.currency;
+        }
+
+        function saveSetupData() {
+            appState.setup = {
+                p1: document.getElementById("setupP1").value,
+                p2: document.getElementById("setupP2").value,
+                date: document.getElementById("setupDate").value,
+                budget: parseFloat(document.getElementById("setupBudget").value) || 0,
+                guests: parseInt(document.getElementById("setupGuests").value) || 0,
+                currency: document.getElementById("setupCurrency").value
+            };
+            saveState();
+            updateDashboard();
+            updateCountdown();
+        }
+
+        // ── EXPORT/IMPORT UTILITIES ──
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "calm_wedding_planner_backup.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed.setup && parsed.budget) {
+                        appState = parsed;
+                        saveState();
+                        initApp();
+                        alert("Wedding planner data imported successfully!");
+                    } else {
+                        alert("Invalid file format. Please check the backup file.");
+                    }
+                } catch (err) {
+                    alert("Failed to parse JSON file.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function confirmReset() {
+            document.getElementById("resetModal").style.display = "flex";
+        }
+
+        function closeResetModal() {
+            document.getElementById("resetModal").style.display = "none";
+        }
+
+        function triggerResetData() {
+            localStorage.removeItem("calm_wedding_planner_data");
+            appState = {
+                setup: { p1: "Alex", p2: "Sam", date: "2026-08-15", budget: 35000, guests: 120, currency: "$" },
+                vendors: [],
+                payments: [],
+                guests: { invited: 120, rsvpRate: 85, plusOnes: 10, catering: 150, drinks: 45, favors: 8, rentals: 12 },
+                moodboard: { colors: ["#8FAE8B", "#D4A5A5", "#C9A96E", "#F5F0E8", "#FFFFFF", "#3C3C3C"], theme: "Rustic Elegance", venueVibe: "Spring garden ceremony with reception under fairy lights", season: "Late Summer Evening", keywords: "Romantic, Joyful, Warm, Cozy, Intimate" },
+                stressLogs: []
+            };
+            loadDefaultBudget();
+            saveState();
+            initApp();
+            closeResetModal();
+        }
+
+        // ── ONBOARDING & NAVIGATION helpers ──
+        function switchTab(tabId) {
+            document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+            document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+
+            document.getElementById("panel-" + tabId).classList.add("active");
+
+            // Find matching nav item
+            const navBtn = Array.from(document.querySelectorAll(".nav-item")).find(btn => btn.innerText.toLowerCase().includes(tabId.replace('guests','guest').replace('vendors','vendor')));
+            if (navBtn) navBtn.classList.add("active");
+
+            // Close mobile menu if open
+            document.getElementById("sidebar").classList.remove("open");
+        }
+
+        function toggleSidebar() {
+            document.getElementById("sidebar").classList.toggle("open");
+        }
+
+        function updateCountdown() {
+            const weddingDate = new Date(appState.setup.date);
+            const now = new Date();
+            const diffTime = weddingDate - now;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            document.getElementById("countdownValue").innerText = diffDays > 0 ? diffDays : 0;
+        }
+
+        function formatCurr(val) {
+            const formatter = new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD', // fallback for format structure
+            });
+            // Replace generic currency sign with customer's local preference
+            return formatter.format(val).replace('$', appState.setup.currency);
+        }
+
+        // Run on load
+        window.onload = initApp;
+    </script>
+</body>
+</html>
